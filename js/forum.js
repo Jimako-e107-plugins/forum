@@ -53,7 +53,7 @@ var e107 = e107 || {'settings': {}, 'behaviors': {}};
 								// Not JSON.
 								return;
 							}
-
+                            //console.log(d);
 							// Update e_token value on quick-reply form for the next Ajax request.
 							if(d.e_token)
 							{
@@ -131,9 +131,14 @@ var e107 = e107 || {'settings': {}, 'behaviors': {}};
 							{
 								var t = '#thread-' + thread;
 								var p = '#post-' + post;
-
 								$(t).hide('slow');
 								$(p).hide('slow').slideUp(800);
+							}
+                            
+                            if(d.hidea)
+							{
+                                var a = '#post-attachments-' + post;
+                                $(a).hide('slow').slideUp(800);
 							}
 						}
 					});

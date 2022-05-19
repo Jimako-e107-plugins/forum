@@ -17,6 +17,8 @@ $e107 = e107::getInstance();
 $tp = e107::getParser();
 $sql = e107::getDb();
 
+global $forum;
+
 if(!$e107->isInstalled('forum'))
 {
 	e107::redirect();
@@ -80,12 +82,19 @@ class forum_front
 			exit;
 		}
 		*/
-
+ 
 		if(isset($_GET['f']))
 		{
 
-			$id = (isset($_GET['id'])) ? (int) $_GET['id'] : null;
-
+            if(isset($_GET['id']))
+            {
+                $id = $_GET['id'];
+                if ($id != 'all')
+                {
+                    $id = (int) $_GET['id'];
+                }
+            }
+            else $id = null;
 
 			switch($_GET['f'])
 			{
@@ -200,9 +209,12 @@ class forum_front
 			$forum_string .= $tp->parseTemplate($FORUM_MAIN_PARENT, true, $this->sc);
 
 			$fid = $parent['forum_id'];
+            
+           
+            
 			if(empty($forumList['forums'][$parent['forum_id']]))
-			{
-				$text .= "<td colspan='5' style='text-align:center' class='forumheader3'>" . LAN_FORUM_0068 . "</td>";
+			{    
+                $forum_string .= "<div style='text-align:center' class='forumheader3'>" . LAN_FORUM_0068 . "</div>";
 			}
 			else
 			{
@@ -230,12 +242,15 @@ class forum_front
 						$forum_string .= $this->parse_forum($f);
 					}
 				}
-				if(isset($FORUM_MAIN_PARENT_END))
-				{
+            }
+			if(isset($FORUM_MAIN_PARENT_END))
+			{
 //--			$forum_string .= $tp->simpleParse($FORUM_MAIN_PARENT_END, $pVars);
-					$forum_string .= $tp->parseTemplate($FORUM_MAIN_PARENT_END, true, $this->sc);
-				}
+				$forum_string .= $tp->parseTemplate($FORUM_MAIN_PARENT_END, true, $this->sc);
 			}
+              
+                
+			
 		}
 
 
@@ -244,15 +259,29 @@ class forum_front
 
 //}
 
+		$breadarray = array(
+			array('text' => $forum->prefs->get('title'), 'url' => e107::url('forum', 'index'))
+		);
+        
+        
 		if(e_QUERY == 'new')
 		{
 			$forum_newstring = '';
 //--	$nVars = new e_vars;
-			$newThreadList = $forum->threadGetNew(10);
+		 	$newThreadList = $forum->threadGetNew(10);
+
+            $template = e107::getTemplate('forum','newforumposts_menu', 'main');
+            $newsc = e107::getScBatch('view', 'forum')->setScVar('param', $param);
+            
+            $list = e107::getParser()->parseTemplate($template['start'], true);
+            
 			foreach($newThreadList as $thread)
-			{
-				$this->sc->setVars($thread);
-				$forum_newstring .= $tp->parseTemplate($FORUM_NEWPOSTS_MAIN, true, $this->sc);
+			{ 
+                
+                $thread['thread_sef'] = $forum->getThreadSef($thread);
+                $newsc->setScVar('postInfo', $laspost);
+				$newsc->setVars($thread);
+                $list .= $tp->parseTemplate($template['item'], true, $newsc); 
 			}
 
 			if(empty($newThreadList))
@@ -261,23 +290,23 @@ class forum_front
 
 			}
 
-			$forum_new_start = $tp->parseTemplate($FORUM_NEWPOSTS_START, true, $this->sc);
-			$forum_new_end = $tp->parseTemplate($FORUM_NEWPOSTS_END, true, $this->sc);
+		    $list .= $tp->parseTemplate($template['end'], true, $TOTALS); 
 
 			if($forum->prefs->get('enclose'))
 			{
-				$ns->tablerender($forum->prefs->get('title'), $forum_new_start . $forum_newstring . $forum_new_end, 'forum');
+				$ns->tablerender($forum->prefs->get('title'), $list, 'forum');
 			}
 			else
 			{
-				echo $forum_new_start . $forum_newstring . $forum_new_end;
+				echo $list;
 			}
-		}
+		
+            $breadarray[] = array('text' =>LAN_PLUGIN_FORUM_LATESTPOSTS );
+            require_once(FOOTERF);
+        }
 
 
-		$breadarray = array(
-			array('text' => $forum->prefs->get('title'), 'url' => e107::url('forum', 'index'))
-		);
+
 
 		e107::breadcrumb($breadarray);
 

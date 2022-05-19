@@ -88,6 +88,7 @@ $thread->init();
 $moderatorUserIds = $forum->getModeratorUserIdsByThreadId($thread->threadInfo['thread_id']);
 define('MODERATOR', (USER && in_array(USERID, $moderatorUserIds) || getperms('0') ));
 
+ 
 if(e_AJAX_REQUEST)
 {
 	if(varset($_POST['action']) == 'quickreply')
@@ -107,6 +108,10 @@ if(e_AJAX_REQUEST)
 	else if(varset($_POST['action']) == 'deletepost')
 	{
 		$forum->usersLastPostDeletion();
+	}
+    else if(varset($_POST['action']) == 'deletepostattachments')
+	{
+        $forum->usersPostAttachmentsDeletion();
 	}
 }
 
@@ -639,6 +644,15 @@ class e107ForumThread
 
 		$totalPosts = $this->threadInfo['thread_total_replies'] + 1; // add +1 for the original post. ie. not a reply.
 		$this->pages = ceil(($totalPosts)  / $this->perPage);
+        
+        if($this->page > $this->pages) {
+            $this->page = $this->pages;
+        }
+        
+        if($this->page < 1) {
+            $this->page = 1;
+        }
+
 		$this->noInc = false;
 	}
 

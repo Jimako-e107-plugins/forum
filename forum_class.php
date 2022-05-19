@@ -191,7 +191,9 @@ class e107forum
 
 
 			$qry = "SELECT user_id, user_name, user_class FROM `#user` WHERE FIND_IN_SET(".$class.", user_class) OR user_class = ".$class." ORDER by user_name LIMIT 50"; // FIND_IN_SET(user_class, ".$class.")
-			return e107::getDb()->retrieve($qry, true);
+			$users = e107::getDb()->retrieve($qry, true);
+
+			return $users;
 		}
 
 		return false;
@@ -202,7 +204,7 @@ class e107forum
 	/**
 	 * @param $user integer userid (if empty "anon" will be used)
 	 * @param $create boolean creates the attachment folder if set to true
-	 * @return string forum attachment path for specific user
+	 * @return forum attachment path for specific user
 	 */
 	function getAttachmentPath($user, $create = FALSE)
 	{
@@ -361,7 +363,7 @@ class e107forum
 			exit;
 		}
 
-		$trackByEmail = (bool) $this->prefs->get('trackemail', true);
+		$trackByEmail = ($this->prefs->get('trackemail',true)) ? true : false;
 
 		$sql = e107::getDb();
 
@@ -431,13 +433,13 @@ class e107forum
 		{
 			if ($this->postDelete($postId))
 			{
-				$ret['msg'] 	= LAN_FORUM_8021.' #'.$postId;
+				$ret['msg'] 	= ''.LAN_FORUM_8021.' #'.$postId;
 				$ret['hide'] 	= true;
 				$ret['status'] 	= 'ok';
 			}
 			else
 			{
-				$ret['msg'] 	= LAN_FORUM_8022." #".$postId;
+				$ret['msg'] 	= "".LAN_FORUM_8022." #".$postId;
 				$ret['status'] 	= 'error';
 			}
 		}
@@ -445,11 +447,51 @@ class e107forum
 		exit();
 	}
 
+	/**
+	 * Allow a user to delete their own attachments.
+	 */
+	function usersPostAttachmentsDeletion()
+	{
+		$ret = array('hide' => false, 'msg' => LAN_FORUM_7008, 'status' => 'error');
+		$actionAllowed = false;
 
+		if (isset($_POST['post']) && is_numeric($_POST['post']))
+		{
+			$postId = intval($_POST['post']);
+			$sql = e107::getDb();
+			$query = "SELECT fp.post_user
+                  FROM #forum_post AS fp
+                  WHERE fp.post_id = ". $postId;
+			if ($sql->gen($query) > 0)
+			{
+				$row = $sql->fetch();
+				if (USERID == $row['post_user']) $actionAllowed = true;
+			}
+		}
+ 
+		if ($actionAllowed && $_POST['action'] == 'deletepostattachments')
+		{
+			if ($this->postDeleteAttachments("post", $postId))
+			{
+				$ret['msg'] 	= ''.LAN_FORUM_8021.' attachments #'.$postId;
+				$ret['hidea'] 	= true;
+				$ret['status'] 	= 'ok';
+			}
+			else
+			{
+				$ret['msg'] 	= "".LAN_FORUM_8022." attachments #".$postId;
+				$ret['status'] 	= 'error';
+			}
+		}
+        
+		echo json_encode($ret);
+		exit();
+	}
+    
 	/**
 	 * get user ids with moderator permissions for the given $postId
 	 * @param $postId id of a forum post
-	 * @return array an array with user ids how have moderator permissions for the $postId
+	 * @return an array with user ids how have moderator permissions for the $postId
 	 */
 	public function getModeratorUserIdsByPostId($postId)
 	{
@@ -471,7 +513,7 @@ class e107forum
 	/**
 	 * get user ids with moderator permissions for the given $threadId
 	 * @param $threadId id of a forum thread
-	 * @return array an array with user ids how have moderator permissions for the $threadId
+	 * @return an array with user ids how have moderator permissions for the $threadId
 	 */
 	public function getModeratorUserIdsByThreadId($threadId)
 	{
@@ -513,7 +555,7 @@ class e107forum
 
 	public function ajaxModerate()
 	{
-		$ret = array('hide' => false, 'msg' => 'unknown', 'status' => 'error');
+		$ret = array('hide' => false, 'msg' => 'unkown', 'status' => 'error');
 		$moderatorUserIds = array();
 
 		if (isset($_POST['thread']) && is_numeric($_POST['thread']))
@@ -535,7 +577,7 @@ class e107forum
 		// Check if user has moderator permissions for this thread
 		if(!in_array(USERID, $moderatorUserIds) && !getperms('0'))
 		{
-			$ret['msg'] 	= LAN_FORUM_8030;
+			$ret['msg'] 	= ''.LAN_FORUM_8030.'';
 			$ret['hide'] 	= false;
 			$ret['status'] 	= 'error';
 		}
@@ -546,13 +588,13 @@ class e107forum
 				case 'delete':
 					if($this->threadDelete($threadId))
 					{
-						$ret['msg'] 	= LAN_FORUM_8020.' #'.$threadId;
+						$ret['msg'] 	= ''.LAN_FORUM_8020.' #'.$threadId;  //define("LAN_FORUM_8020", "Deleted topic");
 						$ret['hide'] 	= true; 
 						$ret['status'] 	= 'ok';	
 					}
 					else
 					{
-						$ret['msg'] 	= LAN_FORUM_8019;
+						$ret['msg'] 	= LAN_FORUM_8019;  //define("LAN_FORUM_8019", "Couldn't delete the topic!");
 						$ret['status'] 	= 'error';	
 					}
 				break;
@@ -568,13 +610,35 @@ class e107forum
 					
 					if($this->postDelete($postId))
 					{
-						$ret['msg'] 	= LAN_FORUM_8021.' #'.$postId;
+						$ret['msg'] 	= ''.LAN_FORUM_8021.' #'.$postId;  //define("LAN_FORUM_8021", "Deleted post");
 						$ret['hide'] 	= true; 
 						$ret['status'] 	= 'ok';	
 					}
 					else
 					{
-						$ret['msg'] 	= LAN_FORUM_8022." #".$postId;
+						$ret['msg'] 	= "".LAN_FORUM_8022." #".$postId;  //define("LAN_FORUM_8022", "Couldn't delete post");
+						$ret['status'] 	= 'error';	
+					}
+				break;
+                
+                case 'deletepostattachments':
+					if(!$postId)
+					{
+						// echo "No Post";
+						// exit;
+						$ret['msg'] 	= LAN_FORUM_7008;
+						$ret['status'] 	= 'error';		
+					}
+					
+					if($this->postDeleteAttachments("post", $postId))
+					{
+						$ret['msg'] 	= ''.LAN_FORUM_8021.' attachments #'.$postId;
+						$ret['hidea'] 	= true; 
+						$ret['status'] 	= 'ok';	
+					}
+					else
+					{
+						$ret['msg'] 	= "".LAN_FORUM_8022." attachments #".$postId;
 						$ret['status'] 	= 'error';	
 					}
 				break;
@@ -846,9 +910,7 @@ class e107forum
 		{
 			return -1;
 		}
-
-
-
+ 
 		$addUserPostCount = true;
 		$result = false;
 
@@ -865,10 +927,10 @@ class e107forum
 
 		$info['data']['post_id'] = $postId; // Append last inserted ID to data array for passing it to event callbacks.
 
-
-		$triggerData = $info['data'];
-	  	e107::getEvent()->trigger('user_forum_post_created', $triggerData);
-
+        if($updateThread) {
+    		$triggerData = $info['data'];
+    	  	e107::getEvent()->trigger('user_forum_post_created', $triggerData);
+        }
 	  	ob_start(); // precaution so json doesn't break.
 		$this->trackEmail($info['data']);
 		ob_end_clean();
@@ -915,7 +977,7 @@ class e107forum
 
 			$triggerData = $info['data'];
 			$triggerData['thread_id'] = $postInfo['post_thread'];
-		  	e107::getEvent()->trigger('user_forum_topic_updated', $triggerData);
+		  	//e107::getEvent()->trigger('user_forum_topic_updated', $triggerData);
 		}
 
 		if(($result || !$updateThread) && $updateForum)
@@ -969,8 +1031,7 @@ class e107forum
 	/**
 	 * Remove threadID from the 'viewed list' list of other users.
 	 * @param $threadId
-	 * @return false|void
-	 */
+	*/
 	private function clearReadThreads($threadId)
 	{
 		if(empty($threadId))
@@ -1011,6 +1072,8 @@ class e107forum
 			if($postInfo !== false)
 			{
 				$postInfo['post_thread'] = $newThreadId;
+                
+ 
 
 				if(!$newPostId = $this->postAdd($postInfo, false))
 				{
@@ -1119,7 +1182,7 @@ class e107forum
 
 
 
-	function postUpdate($postId, $postInfo)
+	function postUpdate($postId, $postInfo, $update_reply = true)
 	{
 		$info = array();
 		$info['data'] = $postInfo;
@@ -1130,11 +1193,13 @@ class e107forum
 		{
 			e107::getMessage()->addDebug("Post Update Failed: ".print_a($info,true));
 		}
-
-		$triggerData = $postInfo;
-		$triggerData['post_id'] = intval($postId);
-	  	e107::getEvent()->trigger('user_forum_post_updated', $triggerData);
-	}
+        
+        if($update_reply) {
+		  $triggerData = $postInfo;
+		  $triggerData['post_id'] = intval($postId);
+	  	  e107::getEvent()->trigger('user_forum_post_updated', $triggerData);
+	    }
+    }
 
 
 
@@ -1152,7 +1217,7 @@ class e107forum
 			fp.forum_id AS parent_id, fp.forum_name AS parent_name,
 			sp.forum_id AS forum_sub, sp.forum_name AS sub_parent,
 			fp.forum_sef AS parent_sef,
-			sp.forum_sef AS sub_parent_sef,
+            sp.forum_sef AS sub_parent_sef,
 			tr.track_userid
 			FROM `#forum_thread` AS t
 			LEFT JOIN `#forum` AS f ON t.thread_forum_id = f.forum_id
@@ -1180,7 +1245,7 @@ class e107forum
 
 				$tmp['thread_sef'] = eHelper::title2sef($tmp['thread_name'],'dashl');
 
-				if($joinForum && empty($tmp['forum_sef']))
+				if(empty($tmp['forum_sef']))
 				{
 					e107::getDebug()->log("Forum ".$tmp['forum_name']." is missing a SEF URL. Please add one via the admin area. ");
 				}
@@ -1420,6 +1485,8 @@ class e107forum
 
 	   		// Empty the post_attachments field for this post in the database (prevents loop when deleting entire thread)
 	   		$sql->update("forum_post", "post_attachments = NULL WHERE post_id = ".$id);
+            
+            return true;
 
 		}
 	}
@@ -1534,7 +1601,13 @@ class e107forum
 		$sql = e107::getDb();
 		$extra = '';
 		$newIdList = array();
-		if ($forum_id !== 0)
+ 
+        if (empty($forum_id))
+        {
+            header('location: '.e107::url('forum', 'index'));
+        }
+        
+		if ($forum_id !== 'all')
 		{
 			$forum_id = (int)$forum_id;
 			$flist = array();
@@ -1549,22 +1622,23 @@ class e107forum
 			$forumList = implode(',', $flist);
 			$extra = " AND thread_forum_id IN($forumList)";
 		}
+        
 		$qry = 'thread_lastpost > '.USERLV.$extra;
-
-		if ($sql->select('forum_thread', 'thread_id', $qry))
+ 
+        $threads = $sql->retrieve('forum_thread', 'thread_id', $qry, true);
+        
+        foreach($threads AS $row) {
+            $newIdList[] = $row['thread_id'];
+        }
+ 
+		if(count($newIdList))
 		{
-			while ($row = $sql->fetch())
-			{
-		  		$newIdList[] = $row['thread_id'];
-			}
-			if(count($newIdList))
-			{
-				$this->threadMarkAsRead($newIdList);
-			}
+		   $this->threadMarkAsRead($newIdList);
 		}
+ 
 		//header('location:'.e_SELF);
 		// issue #3338: using e_SELF runs caused an infinite loop
-		if (empty($forum_id))
+		if ($forum_id == 'all')
 		{
 			header('location: '.e107::url('forum', 'index'));
 		}
@@ -1580,19 +1654,24 @@ class e107forum
 
 	function threadMarkAsRead($threadId)
 	{
-		global $currentUser;
-
+      
+        $currentUser = e107::user(USERID); 
+ 
 		$_tmp = preg_split('#\,+#', $currentUser['user_plugin_forum_viewed']);
 		if(!is_array($threadId)) { $threadId = array($threadId); }
 		foreach($threadId as $tid)
 		{
 			$_tmp[] = (int)$tid;
 		}
+  
 		$tmp = array_unique($_tmp);
 		// issue #3338 fixed typo, that caused issue with not marking threads are read
 		$viewed = trim(implode(',', $tmp), ',');
-		$currentUser['user_plugin_forum_viewed'] =  $viewed;
-		return e107::getDb()->update('user_extended', "user_plugin_forum_viewed = '{$viewed}' WHERE user_extended_id = ".USERID);
+   
+		$currentUser['user_plugin_forum_viewed'] =  $viewed; 
+        $result = e107::getDb()->update('user_extended', "user_plugin_forum_viewed = '{$viewed}' WHERE user_extended_id = ".USERID);
+ 
+		return $result;
 	}
 
 
@@ -1601,9 +1680,7 @@ class e107forum
 	{
 		if (e107::getDb()->select('forum', '*', 'forum_parent=0 ORDER BY forum_order ASC'))
 		{
-			$ret = [];
-			while ($row = e107::getDb()->fetch())
-			{
+			while ($row = e107::getDb()->fetch()) {
 				$ret[] = $row;
 			}
 			return $ret;
@@ -1698,8 +1775,6 @@ class e107forum
 		";
 		if ($sql->gen($qry))
 		{
-			$ret = [];
-
 			while ($row = $sql->fetch())
 			{
 				if($type == 'all')
@@ -1711,7 +1786,6 @@ class e107forum
 					$ret[] = $row;
 				}
 			}
-
 			return $ret;
 		}
 		return FALSE;
@@ -1730,7 +1804,6 @@ class e107forum
 		";
 		if ($sql->gen($qry))
 		{
-			$ret = [];
 			while ($row = $sql->fetch())
 			{
 				if($forum_id == '')
@@ -1968,9 +2041,10 @@ class e107forum
 		$sql = e107::getDb();
 		$forum_id = (int)$forum_id;
 		$qry = "
-		SELECT f.*, fp.forum_class as parent_class, fp.forum_name as parent_name,
+		SELECT f.*, fp.forum_class as parent_class, 
 		fp.forum_id as parent_id, fp.forum_postclass as parent_postclass,
-		sp.forum_name AS sub_parent, sp.forum_sef AS parent_sef
+		fp.forum_name as parent_name, fp.forum_sef AS parent_sef,		
+		sp.forum_name AS sub_parent, sp.forum_sef AS sub_parent_sef
 		FROM #forum AS f
 		LEFT JOIN #forum AS fp ON fp.forum_id = f.forum_parent
 		LEFT JOIN #forum AS sp ON f.forum_sub = sp.forum_id AND f.forum_sub > 0
@@ -1990,8 +2064,7 @@ class e107forum
 		}
 		return FALSE;
 	}
-
-
+ 
 	function forumGetAllowed($type='view')
 	{
 		if(empty($this->permList[$type]))
@@ -2005,8 +2078,6 @@ class e107forum
 		SELECT forum_id, forum_name, forum_sef FROM `#forum`
 		WHERE forum_id IN ({$forumList}) AND forum_parent != 0
 		";
-
-		$ret = [];
 		if ($sql->gen($qry))
 		{
 			while($row = $sql->fetch())
@@ -2023,7 +2094,6 @@ class e107forum
 	 * @param $forumId
 	 * @param $from
 	 * @param $view
-	 * @param null $filter
 	 * @return array
 	 */
 	function forumGetThreads($forumId, $from, $view, $filter = null)
@@ -2039,7 +2109,7 @@ class e107forum
 		LEFT JOIN `#user` AS lpu ON t.thread_lastuser = lpu.user_id
 		WHERE t.thread_forum_id = {$forumId}
 		";
-
+ 
 		if(!empty($filter))
 		{
 			$qry .= " AND ".$filter;
@@ -2068,7 +2138,48 @@ class e107forum
 		return $ret;
 	}
 
+	function forumGetThreadsByAlphabet($forumId, $from, $view, $filter = null)
+	{
+		$e107 = e107::getInstance();
+		$sql = e107::getDb();
+		$forumId = (int)$forumId;
+		$qry = "
+		SELECT t.*, f.forum_id, f.forum_sef,f.forum_name, u.user_name, lpu.user_name AS lastpost_username, MAX(p.post_id) AS lastpost_id FROM `#forum_thread` as t
+		LEFT JOIN `#forum` AS f ON t.thread_forum_id = f.forum_id
+		LEFT JOIN `#forum_post` AS p ON t.thread_id = p.post_thread
+		LEFT JOIN `#user` AS u ON t.thread_user = u.user_id
+		LEFT JOIN `#user` AS lpu ON t.thread_lastuser = lpu.user_id
+		WHERE t.thread_forum_id = {$forumId}
+		";
 
+		if(!empty($filter))
+		{
+			$qry .= " AND ".$filter;
+		}
+
+		$qry .= "
+		GROUP BY thread_id
+		ORDER BY
+		t.thread_sticky DESC,
+		t.thread_name ASC
+		LIMIT ".(int)$from.','.(int)$view;
+
+		$ret = array();
+		if ($sql->gen($qry))
+		{
+			while ($row = $sql->fetch())
+			{
+				if(empty($row['forum_sef']))
+				{
+					e107::getDebug()->log("Forum ".$row['forum_name']." is missing a SEF URL. Please add one via the admin area. ");
+				}
+
+				$ret[] = $row;
+			}
+		}
+		return $ret;
+	}
+    
 	function threadGetLastpost($id)
 	{
 		$e107 = e107::getInstance();
@@ -2198,6 +2309,28 @@ class e107forum
 		WHERE t.thread_lastpost > ".USERLV. "
 		{$viewed}
 		ORDER BY t.thread_lastpost DESC LIMIT 0, ".(int)$count;
+        
+        
+        $qry = "
+    	SELECT t.thread_id, t.thread_name, t.thread_datestamp, t.thread_user, t.thread_views, t.thread_lastpost, t.thread_lastuser, t.thread_total_replies, t.thread_active, 
+    	MAX(p.post_id) AS post_id,
+    	f.forum_id, f.forum_name, f.forum_class, f.forum_sef, 
+    	u.user_name as thread_user_username,  
+    	u.user_image as thread_user_userimage, 
+    	u.user_currentvisit as thread_user_usercurrentvisit,
+    	fp.forum_class,  fp.forum_sef as forum_parent_sef,
+    	lp.user_name AS thread_lastuser_username
+    	FROM #forum_thread AS t
+    	LEFT JOIN #forum_post AS p ON t.thread_id = p.post_thread
+    	LEFT JOIN #user AS u ON t.thread_user = u.user_id
+    	LEFT JOIN #user AS lp ON t.thread_lastuser = lp.user_id
+    	LEFT JOIN #forum AS f ON f.forum_id = t.thread_forum_id
+    	LEFT JOIN #forum AS fp ON f.forum_parent = fp.forum_id
+    	WHERE t.thread_lastpost > ".USERLV. " {$viewed}
+        AND f.forum_id = t.thread_forum_id AND f.forum_class IN (".USERCLASS_LIST.")
+    	AND fp.forum_class IN (".USERCLASS_LIST.") 
+    	GROUP BY t.thread_id  
+    	ORDER BY t.thread_lastpost DESC LIMIT 0, ".(int)$count;
 
 		$ret = array();
 		if($sql->gen($qry))
@@ -2227,7 +2360,7 @@ class e107forum
 				$reply_count = 0;
 				foreach($threadList as $thread)
 				{
-					$reply_count += $sql->count('forum_post', '(*)', 'WHERE post_thread = '.$thread['thread_id']);
+					$reply_count += (int)$sql->count('forum_post', '(*)', 'WHERE post_thread = '.$thread['thread_id']);
 					$this->threadDelete($thread['thread_id'], false);
 				}
 				foreach($forumArray as $fid)
@@ -2272,18 +2405,22 @@ class e107forum
 		$replies = $replies - $threads; 
 		
 		$sql->update('forum', "forum_threads={$threads}, forum_replies={$replies} WHERE forum_id={$forumId}");
+        
 		if($recalcThreads == true)
 		{
 			set_time_limit(60);
-			$sql->select('forum_post', 'post_thread, count(post_thread) AS replies', "post_forum={$forumId} GROUP BY post_thread");
+			$sql->select('forum_post', 'post_thread, count(post_thread) AS replies', "post_forum={$forumId} GROUP BY post_thread"  );
 			$tlist = $sql->db_getList();
-			foreach($tlist as $t)
+ 
+        	foreach($tlist as $t)
 			{
 				$tid = $t['post_thread'];
 				$replies = (int)$t['replies'] - 1;
 				$sql->update('forum_thread', "thread_total_replies={$replies} WHERE thread_id={$tid}");
 			}
 		}
+        
+        
 	}
 
 
@@ -2462,7 +2599,7 @@ class e107forum
 		
 		if(deftrue('BOOTSTRAP'))
 		{
-			$BREADCRUMB =  $frm->breadcrumb($breadcrumb);
+			$BREADCRUMB =  $frm->breadcrumb($breadcrumb, true);
 			e107::breadcrumb($breadcrumb); // assign to {---BREADCRUMB---}
 		}
 		
@@ -2661,7 +2798,7 @@ function img_path($filename)
 {
 
 	$multilang = array('reply.png','newthread.png','moderator.png','main_admin.png','admin.png');
-	$ML = in_array($filename,$multilang);
+	$ML = (in_array($filename,$multilang)) ? TRUE : FALSE;
 
 		if(file_exists(THEME.'forum/'.$filename) || is_readable(THEME.'forum/'.e_LANGUAGE.'_'.$filename))
 		{

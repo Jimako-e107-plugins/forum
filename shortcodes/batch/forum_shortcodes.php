@@ -71,7 +71,27 @@ class forum_shortcodes extends e_shortcode
 	{
 		return "<a href='".e107::url('forum','stats')."'>".LAN_FORUM_0017."</a>\n";
 	}
+    
+   	private function keyIcon($parm)
+	{
+		$size = 'small';
 
+		if(!empty($parm['type']))
+		{
+			return deftrue('IMAGE_'.$parm['type'].'_'.$size);
+		}
+	}
+
+
+	function sc_icon($parm)
+	{
+
+		if(!empty($parm))
+		{
+			return $this->keyIcon($parm);
+		}
+    }
+    
 	function sc_iconkey()
 	{
 		if(!defined('IMAGE_new_small'))
@@ -228,100 +248,85 @@ class forum_shortcodes extends e_shortcode
 
 	function sc_info()
 	{
-	//	global $forum;
-		$allread = false;
-		$total_new_threads = 0;
-		$total_read_threads = 0;
-		$text = '';
+	 	
+        $INFO = "";
+        if (USER == TRUE)
+        {
+        	$total_new_threads = e107::getDb()->count('forum_thread', '(*)', "WHERE thread_datestamp>'".USERLV."' ");
+            $total_updated_threads = e107::getDb()->count('forum_thread', '(*)', "WHERE thread_lastpost>'".USERLV."'  AND thread_lastpost > thread_datestamp ");
+            
+            if($total_updated_threads > $total_new_threads) $total_new_threads =  $total_updated_threads;
+            $userData = e107::user(USERID);
+            
+        	if ($userData['user_plugin_forum_viewed'] != "")
+        	{
+        		$tmp = explode(".", $userData['user_plugin_forum_viewed']);		// List of numbers, separated by single period
+        		$total_read_threads = count($tmp);
+        	}
+        	else
+        	{
+        		$total_read_threads = 0;
+        	}
+        
+        	$INFO = LAN_FORUM_0018." ".USERNAME."<br />";
+        	//$lastvisit_datestamp = $gen->convert_date(USERLV, 'long');
+            $lastvisit_datestamp = defined('USERLV') ? $this->gen->convert_date(USERLV, 'long') : '';
+        	$datestamp = $this->gen->convert_date(time(), "long");
+        	if (!$total_new_threads)
+        	{
+        		$INFO .= LAN_FORUM_0019;
+        	}
+        	elseif($total_new_threads == 1)
+        	{
+        		$INFO .= LAN_FORUM_0020;
+        	}
+        	else
+        	{
+        		$INFO .= LAN_FORUM_0021." ".$total_new_threads." ".LAN_FORUM_0022." ";
+        	}
+        	$INFO .= " ".LAN_FORUM_0023;
+        	if ($total_new_threads == $total_read_threads && $total_new_threads != 0 && $total_read_threads >= $total_new_threads)
+        	{
+        		$INFO .= LAN_FORUM_0029;
+        		$allread = TRUE;
+        	}
+        	elseif($total_read_threads != 0)
+        	{
+        		$INFO .= " (".LAN_FORUM_0027. " ". $total_read_threads. " " . LAN_FORUM_0028.")";
+        	}
+        
+        	$INFO .= "<br />
+        	".LAN_FORUM_0024." ".$lastvisit_datestamp."<br />
+        	".LAN_FORUM_0025." ".$datestamp;
+        }
+        else
+        {
+        	$INFO .= "";
+        	if (ANON == TRUE)
+        	{
+        		$INFO .= LAN_FORUM_0049."<br />".LAN_FORUM_0050." <a href='".e_SIGNUP."'>".LAN_FORUM_0051."</a> ".LAN_FORUM_0052;
+        	}
+        	elseif(USER == FALSE)
+        	{
+        		$INFO .=  LAN_FORUM_0049."<br />".LAN_FORUM_0053." <a href='".e_SIGNUP."'>".LAN_FORUM_0054."</a> ".LAN_FORUM_0055;
+        	}
+        }
 
-		if(ANON == true)
-		{
-			$text = LAN_FORUM_0049 . '<br />' . LAN_FORUM_0050 . " <a href='" . e_SIGNUP . "'>" . LAN_FORUM_0051 . "</a> " . LAN_FORUM_0052;
-		}
-		elseif(USER == false)
-		{
-			$text = LAN_FORUM_0049 . '<br />' . LAN_FORUM_0053 . " <a href='" . e_SIGNUP . "'>" . LAN_FORUM_0054 . "</a> " . LAN_FORUM_0055;
-		}
+        if (USER && $allread != TRUE && $total_new_threads && $total_new_threads >= $total_read_threads)
+        {
+        	$url_new = e107::getUrl()->create("forum/new");
+            $url_markread = e107::getUrl()->create("forum/markread/all");   //mark.all.as.read
+            
+            $INFO .= "<br /><a href='".$url_markread."'>".LAN_FORUM_0057.'</a>'.(e_QUERY != 'new' ? ", <a href='".$url_new."'>".LAN_FORUM_0058."</a>" : '');
+        }
+        
+        if (USER && !empty($this->prefs['track']) && e_QUERY != 'track')
+        {
+        	$INFO .= "<br /><a href='".e107::url('forum','track')."'>".LAN_FORUM_0030."</a>";
+        }
 
-		if(USER == true)
-		{
-			$total_new_threads = defined('USERLV') ? e107::getDb()->count('forum_thread', '(*)', "WHERE thread_datestamp>'" . USERLV . "' ") : 0;
-			$total_read_threads = 0;
-
-			if(defset('USERVIEWED') != "")
-			{
-				$tmp = explode(".", USERVIEWED); // List of numbers, separated by single period
-				$total_read_threads = count($tmp);
-			}
-			/*
-				else
-				{
-					$total_read_threads = 0;
-				}
-			*/
-
-			//		$gen = new convert;
-			$text = LAN_FORUM_0018 . " " . USERNAME . "<br />";
-			$lastvisit_datestamp = defined('USERLV') ? $this->gen->convert_date(USERLV, 'long') : '';
-			$datestamp = $this->gen->convert_date(time(), "long");
-
-			/*
-				if (!$total_new_threads)
-				{
-					$text .= LAN_FORUM_0019." ";
-				}
-				elseif($total_new_threads == 1)
-				{
-					$text .= LAN_FORUM_0020;
-				}
-				else
-				{
-					$text .= LAN_FORUM_0021." ".$total_new_threads." ".LAN_FORUM_0022." ";
-				}
-			*/
-			$text .= (!$total_new_threads ? LAN_FORUM_0019 . " " : ($total_new_threads == 1 ? LAN_FORUM_0020 : LAN_FORUM_0021 . " " . $total_new_threads . " " . LAN_FORUM_0022 . " ")) . LAN_FORUM_0023;
-			//	$text .= LAN_FORUM_0023;
-			//	if ($total_new_threads == $total_read_threads && $total_new_threads != 0 && $total_read_threads >= $total_new_threads)
-			if($total_new_threads != 0 && $total_read_threads >= $total_new_threads)
-			{
-				$text .= LAN_FORUM_0029;
-				$allread = true;
-			}
-			elseif($total_read_threads != 0)
-			{
-				$text .= " (" . LAN_FORUM_0027 . " " . $total_read_threads . " " . LAN_FORUM_0028 . ")";
-			}
-
-			$text .= "<br />
-			" . LAN_FORUM_0024 . " " . $lastvisit_datestamp . "<br />
-			" . LAN_FORUM_0025 . " " . $datestamp;
-		}
-		/*
-		else
-		{
-			$text .= '';
-			if (ANON == TRUE)
-			{
-				$text .= LAN_FORUM_0049.'<br />'.LAN_FORUM_0050." <a href='".e_SIGNUP."'>".LAN_FORUM_0051."</a> ".LAN_FORUM_0052;
-			}
-			elseif(USER == FALSE)
-			{
-				$text .= LAN_FORUM_0049.'<br />'.LAN_FORUM_0053." <a href='".e_SIGNUP."'>".LAN_FORUM_0054."</a> ".LAN_FORUM_0055;
-			}
-		}
-		*/
-
-		//if (USER && vartrue($allread) != TRUE && $total_new_threads && $total_new_threads >= $total_read_threads)
-		if (USER && !$allread && $total_new_threads && $total_new_threads >= $total_read_threads)
-		{
-			$text .= "<br /><a href='".e_SELF."?mark.all.as.read'>".LAN_FORUM_0057.'</a>'.(e_QUERY != 'new' ? ", <a href='".e_SELF."?new'>".LAN_FORUM_0058."</a>" : '');
-		}
-
-		if (USER && !empty($this->prefs['track']) && e_QUERY != 'track')
-		{
-			$text .= "<br /><a href='".e107::url('forum','track')."'>".LAN_FORUM_0030.'</a>';
-		}
-		return $text;
+        return $INFO; 
+        
 	}
 
 

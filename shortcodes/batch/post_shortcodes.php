@@ -190,13 +190,13 @@ class plugin_forum_post_shortcodes extends e_shortcode
 	{
 		$tp = e107::getParser();
 
+       
 		// Define which tinymce4 template should be used, depending if the current user is registered or a guest
 		if (!deftrue('e_TINYMCE_TEMPLATE'))
 		{
-			define('e_TINYMCE_TEMPLATE', (USER ? 'member' : 'public')); // allow images / videos.
+			define('e_TINYMCE_TEMPLATE', ('forum')); // allow images / videos.
 		}
-		
-		
+ 
 		if(!empty($_POST['post']))
 		{
 			$text = $tp->post_toForm($_POST['post']);
@@ -205,8 +205,15 @@ class plugin_forum_post_shortcodes extends e_shortcode
 		{
 			$post = preg_replace('#\[hide].*?\[/hide]#s', '', trim($this->var['post_entry']));
 			$quoteName = ($this->var['user_name'] ? $this->var['user_name'] : $this->var['post_user_anon']);
-			$text = $tp->toText("[quote={$quoteName}]\n".$post."\n[/quote]\n",true);
-			$text .= "\n\n";
+            
+            //$text = $tp->toText("[quote={$quoteName}]\n".$post."\n[/quote]\n",true);
+            
+            //return "<div class='indent {$class}'><em>$parm ".LAN_WROTE."</em> ...<br />$code_text</div>";
+            //return "<div class='indent bbcode-quote bbcode-quote-forum'><em>$parm ".LAN_WROTE."</em> ...<br />$code_text</div>";
+            
+            $text = "<div class='indent bbcode-quote bbcode-quote-forum'><span class='bbcode-quote-source'>$quoteName ".LAN_WROTE."</span> ...<br />$post</div>";
+			
+			$text .= "\n\n<br>";
 
 		//	$text = $tp->toForm($text);
 			$this->var['action'] = 'rp';
@@ -293,29 +300,66 @@ class plugin_forum_post_shortcodes extends e_shortcode
 	{
 		$pref = e107::getPref();
 		$tp = e107::getParser();
+	    $fl = e107::getFile();
 
 		global $forum;
-		
+ 
 		//. <div>".($pref['image_post'] ? "Attach file / image" : "Attach file")."</div>
 		$allowedFileTypes = e107::getFile()->getAllowedFileTypes();
 
 		$tooltip = LAN_FORUM_3016.": ".implode(', ',array_keys($allowedFileTypes))."\n".LAN_FORUM_3017."\n".LAN_FORUM_3018.": ".(vartrue($max_upload_size) ? $max_upload_size." ".LAN_FORUM_3019 : ini_get('upload_max_filesize'));
 
-		$fileattach = "
-			<div>	
-				<div id='fiupsection'>
-				<span id='fiupopt'>
-					<input class='tbox e-tip' title=\"".$tp->toAttribute($tooltip)."\" name='file_userfile[]' type='file' size='47'  multiple='multiple' />
-				</span>
-				</div>
+        $info = "<div class='alert alert-info'>".$tooltip."</div>";
+        
+        /* existing attachments */
+        if($this->var['post_attachments']) {
+           $data = e107::unserialize($this->var['post_attachments']);
+           $existing = '';
 
-			</div>
-		
+			if(!empty($data['img']))
+			{
+				$existing .= "<ul class='list-unstyled'>";
+				foreach($data['img'] as $v)
+				{
+					$existing .= "<li><span class='label label-primary'>".$tp->toGlyph('fa-file-image-o').$v['name']."</span> <small>".$fl->file_size_encode($v['size'])."</small></li>";
+				}
+
+				$existing .= "</ul>";
+			}
+
+			if(!empty($data['file']))
+			{
+				$existing .= "<ul class='list-unstyled'>";
+				foreach($data['file'] as $v)
+				{
+					$existing .= "<li><span class='label label-primary'>".$tp->toGlyph('fa-file-text-o').$v['name']."</span> <small>".$fl->file_size_encode($v['size'])."</small></li>";
+				}
+
+				$existing .= "</ul>";
+			}
+                    
+        }
+        
+  	    $fileattach = "
+  			<div>	
+  				<div id='fiupsection'>
+  				<span id='fiupopt'>
+  					<input class='tbox e-tip' title=\"".$tp->toAttribute($tooltip)."\" name='file_userfile[]' type='file' size='47'  />
+  				</span>
+  				</div>
+  
+  			</div>
+  		
 		";	
+        
+        $add_fileattach = "<input class='tbox e-tip' type='button' name='addoption' value='".LAN_FORUM_3020."' onclick=\"duplicateHTML('fiupopt','fiupsection')\" />";
+        
+        $text = $existing.$info.$fileattach.$add_fileattach;
+        
 		//<input class='btn btn-default button' type='button' name='addoption' value=".LAN_FORUM_3020."  />
 		if(is_object($this->forum) &&  $this->forum->prefs->get('attach') && (check_class($pref['upload_class']) || getperms('0')))
 		{
-			return $fileattach;
+			return $text;
 		}
 		
 	}

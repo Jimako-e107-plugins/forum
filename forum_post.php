@@ -80,8 +80,7 @@ class forum_post_handler
 			$moderatorUserIds = $forum->getModeratorUserIdsByThreadId($this->id);
 		}
 
-		define('MODERATOR', (USER && in_array(USERID, $moderatorUserIds) || getperms('0')));
-
+        define('MODERATOR', (USER && in_array(USERID, $moderatorUserIds) || getperms('0')));
 
 		$this->data = $this->processGet();
 
@@ -1006,8 +1005,10 @@ class forum_post_handler
 	}
 
 
+
+
 	/**
-	 * @param      $text
+	 * @param $text
 	 * @param bool $caption
 	 */
 	function render($text, $caption = false)
@@ -1514,11 +1515,11 @@ class forum_post_handler
 			$threadVals['thread_sticky'] = (MODERATOR ? (int)$_POST['threadtype'] : 0);
 
 			$this->forumObj->threadUpdate($this->data['post_thread'], $threadVals);
-			$this->forumObj->postUpdate($this->data['post_id'], $postVals);
+			$this->forumObj->postUpdate($this->data['post_id'], $postVals, false);
 
 			e107::getCache()->clear('newforumposts');
 
-			$url = e107::url('forum','topic',$this->data);
+            $url = e107::url('forum','topic',$this->data);
 
 			$this->redirect($url);
 			exit;
@@ -1578,23 +1579,22 @@ class forum_post_handler
 			$postVals['post_attachments'] = $attachmentsPosted;
 		}		
 
-		$this->forumObj->postUpdate($this->data['post_id'], $postVals);
+		$this->forumObj->postUpdate($this->data['post_id'], $postVals, true);
 
 		e107::getCache()->clear('newforumposts');
 
 
 	//	$url = e107::getUrl()->create('forum/thread/post', "id={$this->data['post_id']}", 'encode=0&full=1'); // XXX what data is available, find thread name
 
-		$page= (varset($_GET['p']) ? (int)$_GET['p'] : 1);
-		if($page > 1) 
-		{
-				$url = e107::url('forum','topic',$this->data)."?p=".$page; 
-		}
-		else {
-				$url = e107::url('forum','topic',$this->data);
-		}
-        
-		//$url = e107::url('forum','topic',$this->data); // ."&f=post";
+	    $page= (varset($_GET['p']) ? (int)$_GET['p'] : 1);
+            
+        if($page > 1) 
+        {
+                $url = e107::url('forum','topic',$this->data)."?p=".$page; 
+        }
+        else {
+            $url = e107::url('forum','topic',$this->data);
+        }
 
 		$this->redirect($url);
 

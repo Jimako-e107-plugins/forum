@@ -508,6 +508,13 @@
 			
 			$backtrace = debug_backtrace();
 			$caller = $backtrace[1]['function'];
+            
+            if(empty($this->var['thread_total_replies']))
+      		{   
+
+      			return ''; 
+      		}
+            
 			if($this->var['forum_lastpost_info'])
 			{
 				//	global $gen;
@@ -746,16 +753,37 @@
 				return $this->keyIcon($parm);
 			}
 
-
-
-
 			global $forum;
-//	global $forum, $FORUM_VIEW_FORUM, $FORUM_VIEW_FORUM_STICKY, $FORUM_VIEW_FORUM_ANNOUNCE, $gen, $menu_pref, 
-//$threadsViewed = $forum->threadGetUserViewed();
-//	$newflag = (USER && $this->var['thread_lastpost'] > USERLV && !in_array($this->var['thread_id'], $threadsViewed));
+			//	global $forum, $FORUM_VIEW_FORUM, $FORUM_VIEW_FORUM_STICKY, $FORUM_VIEW_FORUM_ANNOUNCE, $gen, $menu_pref, 
+			//$threadsViewed = $forum->threadGetUserViewed();
+			//	$newflag = (USER && $this->var['thread_lastpost'] > USERLV && !in_array($this->var['thread_id'], $threadsViewed));
+
 			$newflag = (USER && $this->var['thread_lastpost'] > USERLV && !in_array($this->var['thread_id'], $forum->threadGetUserViewed()));
+			
+            $ICON = ($newflag ? IMAGE_new : IMAGE_nonew);
+ 
+ 			if($this->var['thread_sticky'] == 2)
+			{
+				$ICON = ($this->var['thread_active'] ? IMAGE_announce : IMAGE_announceclosed);
+               
+				return $ICON;
+			}
+            
+			if($this->var['thread_sticky'] == 1)
+			{
+				$ICON = ($this->var['thread_active'] ? IMAGE_sticky : IMAGE_stickyclosed);
+               
+				return $ICON;
+			}
+
+			if(!$this->var['thread_active']) {
+				$ICON = ($newflag ? IMAGE_new : IMAGE_closed);
+				return $ICON;
+			}
+
+			
 			$ICON = ($newflag ? IMAGE_new : IMAGE_nonew);
-//-- CANDIDATE FOR TERNARY IF
+			//-- CANDIDATE FOR TERNARY IF
 			if($this->var['thread_total_replies'] >= $forum->prefs->get('popular', 10))
 			{
 				$ICON = ($newflag ? IMAGE_new_popular : IMAGE_nonew_popular);
@@ -765,7 +793,7 @@
 				$ICON = IMAGE_noreplies;
 			}
 
-//-- CANDIDATE FOR TERNARY IF
+			//-- CANDIDATE FOR TERNARY IF
 			if($this->var['thread_sticky'] == 1)
 			{
 				$ICON = ($this->var['thread_active'] ? IMAGE_sticky : IMAGE_stickyclosed);
