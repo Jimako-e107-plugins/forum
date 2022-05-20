@@ -382,9 +382,14 @@ class forum_shortcodes extends e_shortcode
 
 	function sc_parentname()
 	{
-		return $this->var['forum_name'];
+        return $this->var['forum_name'];
 	}
 
+    /* {PARENTSEF} */
+	function sc_parentsef()
+	{
+        return $this->var['forum_sef'];
+	}
 
 	// Function to show the retrieval of parent ID, not really needed by core template
 	function sc_parentid()
