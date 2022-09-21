@@ -109,11 +109,11 @@ class forum_url // plugin-folder + '_url'
 			'legacy'		=> '{e_PLUGIN}forum/forum.php',
 		);
 
-
+		//? last param is bug? 
 		$config['forum'] = array(
-			'regex'			=> '^forum\/([^\/]*)\/?\??([^\/]*)?$',
-			'sef'			=> 'forum/{forum_sef}/',
-			'redirect'		=> '{e_PLUGIN}forum/forum_viewforum.php?sef=$1&$2',
+			'regex'			=> '^forum\/([^\/]*)\/([^\/]*)\/?\??([^\/]*)?$',
+			'sef'			=> 'forum/{forum_id}/{forum_sef}/',
+			'redirect'		=> '{e_PLUGIN}forum/forum_viewforum.php?id=$1&sef=$2&$3',
 			'legacy'        => '{e_PLUGIN}forum/forum_viewforum.php?id={forum_id}'
 		);
 

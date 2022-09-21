@@ -2483,92 +2483,7 @@ class e107forum
 		global $FORUM_CRUMB, $forumInfo, $threadInfo, $thread, $BREADCRUMB;
 
 		if(!$forumInfo && $thread) { $forumInfo = $thread->threadInfo; }
-
-		if(is_array($FORUM_CRUMB))
-		{
-
-			$search 	= array('{SITENAME}', '{SITENAME_HREF}');
-			$replace 	= array(SITENAME, e107::getUrl()->create('/'));
-			$FORUM_CRUMB['sitename']['value'] = str_replace($search, $replace, $FORUM_CRUMB['sitename']['value']);
-
-			$search 	= array('{FORUMS_TITLE}', '{FORUMS_HREF}');
-			$replace 	= array($forumTitle, e107::url('forum','index'));
-			$FORUM_CRUMB['forums']['value'] = str_replace($search, $replace, $FORUM_CRUMB['forums']['value']);
-
-			$search 	= array('{PARENT_TITLE}', '{PARENT_HREF}');
-			$replace 	= array($tp->toHTML($forumInfo['parent_name']), e107::url('forum','index')."#".$frm->name2id($forumInfo['parent_name']));
-			$FORUM_CRUMB['parent']['value'] = str_replace($search, $replace, $FORUM_CRUMB['parent']['value']);
-
-
-			if($forumInfo['forum_sub'])
-			{
-				$search 	= array('{SUBPARENT_TITLE}', '{SUBPARENT_HREF}');
-				$replace 	= array(ltrim($forumInfo['sub_parent'], '*'), e107::url('forum', 'forum', array('forum_id'=>$forumInfo['forum_sub'],'forum_sef'=>$forumInfo['parent_sef'])));
-				$FORUM_CRUMB['subparent']['value'] = str_replace($search, $replace, $FORUM_CRUMB['subparent']['value']);
-			}
-			else
-			{
-				$FORUM_CRUMB['subparent']['value'] = '';
-			}
-
-			$search 	= array('{FORUM_TITLE}', '{FORUM_HREF}');
-			$replace 	= array(ltrim($forumInfo['forum_name'], '*'), e107::url('forum', 'forum', $forumInfo));
-			$FORUM_CRUMB['forum']['value'] = str_replace($search, $replace, $FORUM_CRUMB['forum']['value']);
-
-			if(isset($threadInfo['thread_id']))
-			{
-				$threadInfo['thread_id'] = intval($threadInfo['thread_id']);
-			}
-			$search 	= array('{THREAD_TITLE}', '{THREAD_HREF}');
-			$replace 	= array(vartrue($threadInfo['thread_name']), ''); // $thread->threadInfo - no reference found
-
-
-			$FORUM_CRUMB['thread']['value'] = str_replace($search, $replace, varset($FORUM_CRUMB['thread']['value']));
-
-
-			$FORUM_CRUMB['fieldlist'] = 'sitename,forums,parent,subparent,forum,thread';
-
-			$BREADCRUMB = $tp->parseTemplate('{BREADCRUMB=FORUM_CRUMB}', false); // must stay as 'false' to prevent sending to theme shortcodes.
-		}
-		else
-		{
-
-
-
-			$dfltsep = ' :: ';
-			$BREADCRUMB = "<a class='forumlink' href='".e_HTTP."index.php'>".SITENAME."</a>".$dfltsep.
-			"<a class='forumlink' href='". e107::url('forum','index')."'>".$forumTitle."</a>".$dfltsep;
-
-			if($forumInfo['sub_parent'])
-			{
-				$forum_sub_parent = (substr($forumInfo['sub_parent'], 0, 1) == '*' ? substr($forumInfo['sub_parent'], 1) : $forumInfo['sub_parent']);
-				$BREADCRUMB .= "<a class='forumlink' href='".e_PLUGIN_ABS."forum/forum_viewforum.php?{$forumInfo['forum_sub']}'>{$forum_sub_parent}</a>".$dfltsep;
-			}
-
-			$tmpFname = $forumInfo['forum_name'];
-			if(substr($tmpFname, 0, 1) == "*") { $tmpFname = substr($tmpFname, 1); }
-
-			if ($forum_href)
-			{
-				$BREADCRUMB .= "<a class='forumlink' href='".e107::url('forum', 'forum', $forumInfo)."'>".$tp->toHTML($tmpFname, TRUE, 'no_hook,emotes_off')."</a>";
-			} else
-			{
-				$BREADCRUMB .= $tmpFname;
-			}
-
-			if(strlen($thread_title))
-			{
-				$BREADCRUMB .= $dfltsep.$thread_title;
-			}
-		}
-
-
-
-		// New v2.x Bootstrap Standardized Breadcrumb.
-
-	//	print_a($forumInfo);
-		// return;
-
+ 
 		$breadcrumb = array();
 		
 		$breadcrumb[]	= array('text'=> $forumTitle	, 'url'=> e107::url('forum','index'));
@@ -2582,7 +2497,14 @@ class e107forum
 	
 		if($forumInfo['forum_sub'])
 		{
-			$breadcrumb[]	= array('text'=> ltrim($forumInfo['sub_parent'], '*')		, 'url'=> e107::url('forum','forum', array('forum_sef'=> $forumInfo['sub_parent_sef'])));
+			$breadcrumb[]	= array('text' => ltrim($forumInfo['sub_parent'], '*'), 'url' => e107::url(
+				'forum',
+				'forum',
+				array(
+					'forum_id' => $forumInfo['forum_sub'],
+					'forum_sef' => $forumInfo['sub_parent_sef']
+				)
+			));
 			$breadcrumb[]	= array('text'=>ltrim($forumInfo['forum_name'], '*')		, 'url'=> (defset('e_PAGE') !='forum_viewforum.php') ? e107::url('forum', 'forum', $forumInfo) : null);
 
 		}
