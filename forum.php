@@ -218,9 +218,15 @@ class forum_front
 			}
 			else
 			{
+
 				//TODO: Rework the restricted string
 				foreach($forumList['forums'][$parent['forum_id']] as $f)
 				{
+					//filling the parent data
+					$f['parent_sef'] = $parent['forum_sef'];
+					$f['parent_name'] = $parent['forum_name'];
+					$f['parent_description'] = $parent['forum_description'];
+ 
 					if($f['forum_class'] == e_UC_ADMIN && ADMIN)
 					{
 						$forum_string .= $this->parse_forum($f, LAN_FORUM_0005);
