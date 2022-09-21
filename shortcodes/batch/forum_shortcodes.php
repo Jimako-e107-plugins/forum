@@ -372,11 +372,23 @@ class forum_shortcodes extends e_shortcode
 
 	function sc_parentimage($parms=null)
 	{
+ 
 		if (empty($this->var['forum_image'])) return '';
 		if (!empty($parms) && !is_array($parms)) parse_str($parms, $parms);
 		if (empty($parms)) $parms = array();
-		$parms = array_merge(array('class'=>'img-fluid', 'h' => 50), $parms);
+		$parms = array_merge(array('class'=>'img-fluid', 'h' => 50, 'x' => 1), $parms);
+
+		$parms['alt'] = $this->sc_parentname();
+ 
+		$filePath = e107::getParser()->replaceConstants($this->var['forum_image']);
+
+		if (!is_readable($filePath))
+		{
+			return '';
+		} 
+
 		$text = e107::getParser()->toImage($this->var['forum_image'], $parms);
+ 
 		return $text.'&nbsp;';
 	}
 
@@ -419,16 +431,26 @@ class forum_shortcodes extends e_shortcode
 	}
 
 
-	function sc_forumimage($parms=null)
+	function sc_forumimage($parms = null)
 	{
-		if(empty($this->var['forum_image'])) return '';
+		if (empty($this->var['forum_image'])) return '';
 
 		if (!empty($parms) && !is_array($parms)) parse_str($parms, $parms);
 		if (empty($parms)) $parms = array();
-		$parms = array_merge(array('class'=>'img-fluid', 'h' => 50), $parms);
-		$text = e107::getParser()->toImage($this->var['forum_image'], $parms);
-		return "<a href='".e107::url('forum', 'forum', $this->var)."'>{$text}</a>&nbsp;";
+		$parms = array_merge(array('class' => 'img-fluid', 'h' => 50, 'x' => 1), $parms);
 
+		$parms['alt'] = $this->sc_forumname(array('title'=>1));
+
+		$filePath = e107::getParser()->replaceConstants($this->var['forum_image']);
+
+		if (!is_readable($filePath))
+		{
+			return '';
+		}
+
+		$text = e107::getParser()->toImage($this->var['forum_image'], $parms);
+
+		return "<a href='" . e107::url('forum', 'forum', $this->var) . "'>{$text}</a>";
 	}
 
 	/**
@@ -443,12 +465,18 @@ class forum_shortcodes extends e_shortcode
 
 	function sc_forumname($parm = null)
 	{
+ 
 		if(substr($this->var['forum_name'], 0, 1) == '*')
 		{
 			$this->var['forum_name'] = substr($this->var['forum_name'], 1);
 		}
 
 		$this->var['forum_name'] = e107::getParser()->toHTML($this->var['forum_name'], true, 'no_hook');
+
+		if(isset($parm['title']))
+		{
+			return $this->var['forum_name'];
+		}
 
 		$class = !empty($parm['class']) ? "class='".$parm['class']."'" : '';
 
