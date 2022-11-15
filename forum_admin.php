@@ -363,6 +363,7 @@ e107::css('inline',"
 				// issue #3245 correct any possible errors/misformatting in the forum_sef
 				$new_data['forum_sef'] = eHelper::title2sef($new_data['forum_sef']);
 			}
+			$new_data['forum_datestamp'] = time();
 
 			return $new_data;
 		}
@@ -397,6 +398,8 @@ e107::css('inline',"
 				// issue #3245 correct any possible errors/misformatting in the forum_sef
 				$new_data['forum_sef'] = eHelper::title2sef($new_data['forum_sef']);
 			}
+			
+			$new_data['forum_datestamp'] = time();
 
 			return $new_data;
 		}
