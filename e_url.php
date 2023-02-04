@@ -47,11 +47,19 @@ class forum_url // plugin-folder + '_url'
 		);
 
 		$config['markread']  = array(
-			'sef'           => '^forum/markread/{forum_id}',
-			'regex'			=> 'forum/markread/([\d]*)',
+			'sef'           => 'forum/markread/{forum_id}',
+			'regex'			=> '^forum/markread/([\d]*)',
 			'redirect'      => '{e_PLUGIN}forum/forum.php?f=mfar&id=$1',
 			'legacy'        => '{e_PLUGIN}forum/forum.php?f=mfar&id={forum_id}'
 		);
+
+		$config['userposts']  = array(
+			'regex'			=> '^forum/userposts/([\d]*)',
+			'sef'           => 'forum/userposts/{query}',
+			'redirect'      => '{e_PLUGIN}forum/forum_userposts.php?$1',
+			'legacy'        => '{e_PLUGIN}forum/forum_userposts.php?$1'
+		);
+
 
 		$config['new']  = array(
             'regex'			=> '^forum/new$/?',
@@ -92,7 +100,8 @@ class forum_url // plugin-folder + '_url'
 		//	'regex'			=> '^forum/(.*)/(\d*)(?:-|/)([\w-]*)/?\??(.*)',
 			'sef'			=> 'forum/{forum_sef}/{thread_id}/?p={thread_page}',
 			'redirect'		=> '{e_PLUGIN}forum/forum_viewtopic.php?id=$2&$4'
-		);        
+		);
+ 
 /*
 		$config['subforum'] = array(
 			'regex'			=> '^forum/(.*)/(.*)$',

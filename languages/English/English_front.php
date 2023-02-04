@@ -347,6 +347,17 @@ define("LAN_FORUM_8028", "Return");
 define("LAN_FORUM_8029", "New topic created!");
 define("LAN_FORUM_8030", "Couldn't delete post (moderator permission needed)");
 
+
+define("LAN_FORUM_UP_00", "All Forum Posts for [x]");
+define("LAN_FORUM_UP_08", "No Posts");
+define("LAN_FORUM_UP_12", "Search [x]'s Posts");
+define("LAN_FORUM_UP_11", "Posted on");
+define("LAN_FORUM_UP_15", "Re");
+
+
+
+ 
+
 /*  THIS WILL BE DELETED ONCE THE REWRITE IS DONE
 ==================================================
  * 

@@ -266,3 +266,10 @@ define("LAN_FORUM_8027", "Nezvolená akcia");
 define("LAN_FORUM_8028", "Návrat");
 define("LAN_FORUM_8029", "Vytvorená nová téma!");
 define("LAN_FORUM_8030", "Nepodarilo sa vymazať príspevok (musíte mať práva moderatóra)");
+
+
+define("LAN_FORUM_UP_00", "Všetky príspevky od: [x]");
+define("LAN_FORUM_UP_08", "Žiadne príspevky");
+define("LAN_FORUM_UP_12", "Prehľadať príspevky od: [x]");
+define("LAN_FORUM_UP_11", "Zo dňa");
+define("LAN_FORUM_UP_15", "Re");

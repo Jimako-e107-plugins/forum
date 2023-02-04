@@ -29,7 +29,7 @@ class forum_user // plugin-folder + '_user'
 		
 		$perc = ($total_forumposts > 0 && $count) ? round(($count / $total_forumposts) * 100, 2) : 0;
 
-		$url = ($count> 0) ? e_HTTP."userposts.php?0.forums.".$udata['user_id'] : null;
+		$url = ($count> 0) ? e107::url('forum', 'userposts', array("query"=>"0.forums.".$udata['user_id'] ))  : null;
 
 		$var = array(
 			0 => array('label' => LAN_PLUGIN_FORUM_POSTS, 'text' => intval($count)." ( ".$perc."% )", 'url'=> $url)
@@ -37,5 +37,8 @@ class forum_user // plugin-folder + '_user'
 		
 		return $var;
 	}
+    
+ 
+    
 	
 }
