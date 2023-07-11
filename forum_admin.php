@@ -860,7 +860,7 @@ e107::css('inline',"
 				$linkQ = e_SELF."?searchquery=&filter_options=page_chapter__".$id."&mode=page&action=list";
 			//	$level_image = $parent ? '<img src="'.e_IMAGE_ABS.'generic/branchbottom.gif" class="icon" alt="" style="margin-left: '.($level * 20).'px" />&nbsp;' : '';
 
-				$level_image = $parent ? str_replace('level-x','level-'.$level, ADMIN_CHILD_ICON) : '';
+				$level_image = $parent ? str_replace('level-x', 'level-' . $level, defset('ADMIN_CHILD_ICON')) : '';
 
 				return ($parent) ?  $level_image.$curVal : $curVal;
 			}
@@ -898,7 +898,7 @@ e107::css('inline',"
 
 				//	$ret['inlineParms'] = array('pre'=>'<img src="'.e_IMAGE_ABS.'generic/branchbottom.gif" class="level-'.$level.' icon" alt="" />');
 
-					$ret['inlineParms'] = array('pre'=> str_replace('level-x','level-'.$level, ADMIN_CHILD_ICON));
+					$ret['inlineParms'] = array('pre' => str_replace('level-x', 'level-' . $level, defset('ADMIN_CHILD_ICON')));
 
 				}
 
@@ -1102,8 +1102,7 @@ e107::css('inline',"
 				$topic = $this->getController()->getListModel()->get('gen_ip');
 				$topidId = $this->getController()->getListModel()->get('gen_intdata');
 				$text = "<div class='btn-group'>";
-				$text .= "<a class='e-modal btn btn-default'  data-modal-caption='Topic: ".$topic."'  href='".e_SELF."?mode=post&action=list&id=". $topidId."' rel='external'>".ADMIN_VIEW_ICON."</a>";
-
+				$text .= "<a class='e-modal btn btn-default'  data-modal-caption='Topic: " . $topic . "'  href='" . e_SELF . "?mode=post&action=list&id=" . $topidId . "' rel='external'>" . defset('ADMIN_VIEW_ICON') . "</a>";
 				$text .= $this->renderValue('options',$value,array('readParms'=>'edit=0'), $id);
 				$text .= "</div>";
 				return $text;
